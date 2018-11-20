@@ -3,15 +3,19 @@ python:
  - "3.6.6"
 install:
  - pip install -r requirements.txt
+ env: 
+ - DJANGO=2.0 DB=postgres
 sudo: required
 services:
  - docker
+ - postgresql
 script:
  - sonar-scanner
  - cd docker
  - docker exec -ti decide_web ./manage.py test
  - cd ..
 addons:
+  postgresql: "9.6"
   sonarcloud:
     organization: "pablotabares-github"
 notifications:
@@ -21,3 +25,8 @@ before_install:
  - docker-compose up -d
  - cd ..
 
+before_script:
+ - cp local_settings.travis.py local_settings.py
+ - psql -c "create user decide with password 'decide'" 
+ - psql -c "create database decide owner decide"
+ - python manage.py migrate
